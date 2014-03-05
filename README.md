@@ -1,0 +1,4 @@
+LogAnalyzer
+===========
+
+Analyzátor logů
