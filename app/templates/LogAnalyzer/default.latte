@@ -1,0 +1,287 @@
+{block head}
+
+	<style type="text/css">
+		form table {
+			background-color: transparent;
+		}
+
+		.section-errors {
+			border: 1px solid #808080;
+			background-color: #F8F8F8;
+			padding: 10px;
+			margin: 20px;
+		}
+
+		.section-errors h2 {
+			/*margin-top: 30px;*/
+		}
+
+		.section-errors a {
+			color: #006ed3;
+			text-decoration: none;
+		}
+
+		.section-errors a:hover {
+			text-decoration: underline;
+		}
+
+		.section-errors abbr {
+			border-bottom: none;
+		}
+
+		.section-errors li {
+			list-style-type: none;
+		}
+
+		.section-errors .id {
+			display: inline-block;
+			min-width: 50px;
+			margin-left: 5px;
+		}
+
+		.section-errors > ul {
+			margin-top: 10px;
+		}
+
+		.section-errors > ul > li.message strong, .section-errors > ul > li.message abbr {
+			cursor: pointer;
+		}
+
+		.section-errors > ul > li.message.highlighted {
+			background-color: #444;
+			color: #F8F8F8;
+			-moz-border-radius: 3px;
+			border-radius: 3px;
+			/*margin-left: 10px;*/
+			/*padding-left: 7px;*/
+			/*padding-right: 7px;*/
+			/*margin-right: -5px;*/
+		}
+
+		.section-errors > ul > li.message.highlighted a {
+			color: inherit;
+			text-decoration: underline;
+		}
+
+		.section-errors > ul > li.message.highlighted a:hover {
+			color: #fff;
+		}
+
+		.section-errors > ul > li.message.highlighted small {
+			color: #E0E0E0;
+		}
+
+		.section-errors > ul > li.message.highlighted .id {
+			/*visibility: hidden;*/
+		}
+
+		.section-errors > ul > li.message.highlighted abbr {
+			color: inherit;
+		}
+
+		.section-errors > ul > li small {
+			color: #808080;
+			margin-left: 30px;
+			font-size: 90%;
+			clear: both;
+			display: block;
+		}
+
+		.section-errors-urls {
+			display: none;
+			font-size: 85%;
+			padding-left: 20px;
+		}
+
+		.section-errors-urls li {
+			margin: 0;
+		}
+
+		.section-errors-urls a {
+			color: inherit;
+		}
+
+		.section-errors-urls a:hover {
+			text-decoration: underline;
+		}
+
+	</style>
+
+{/block}
+
+{block scripts}
+
+	{include #parent}
+
+	<script type="text/javascript">
+		$(document).ready(function () {
+
+			var cache = {};
+			var errorBlock = $(".section-errors");
+
+			var getMainListItem = function (errorId) {
+				if (typeof cache[errorId] == "undefined") {
+					cache[errorId] = errorBlock.find("#error-" + errorId);
+				}
+				return cache[errorId];
+			};
+
+			var getUrlsBlock = function (errorId) {
+				return getMainListItem(errorId).next(".section-errors-urls");
+			};
+
+			var toggleUrlsBlock = function (errorId) {
+				if (getUrlsBlock(errorId).is(":hidden")) {
+					showUrlsBlock(errorId);
+				} else {
+					hideUrlsBlock(errorId);
+				}
+			};
+
+			var hideUrlsBlock = function (errorId) {
+				getUrlsBlock(errorId).hide();
+				getMainListItem(errorId).find("abbr").text("►");
+			};
+
+			var showUrlsBlock = function (errorId) {
+				getUrlsBlock(errorId).show();
+				getMainListItem(errorId).find("abbr").text("▼");
+			};
+
+			var getErrorIdFromHash = function () {
+				return location.hash.substr(1);
+			};
+
+			var highlightError = function (errorId) {
+				errorBlock.find(".highlighted").removeClass("highlighted");
+				if (errorId) getMainListItem(errorId).addClass("highlighted");
+			};
+
+			errorBlock.find("li.message strong, li.message abbr").click(function (e) {
+
+				var errorId = $(this).closest("li").attr("id").substr(6);
+				var urlsBlock = getUrlsBlock(errorId);
+
+				if (urlsBlock.children().length == 0) {
+					$.getJSON({link getUrls!}, { errorId: errorId }, function (payload) {
+
+						if (!payload.urls) return false;
+						var ul = urlsBlock.append("<ul>").find("ul");
+
+						for (i = 0; i < payload.urls.length; i++) {
+							var url = payload.urls[i].url;
+							var count = payload.urls[i].count;
+							ul.append("<li>");
+							ul.find("li:last")
+								.append(count + "× ")
+								.append($("<a>", {
+									text: url,
+									href: url
+								}));
+						}
+
+						showUrlsBlock(errorId);
+
+					});
+
+				} else {
+					toggleUrlsBlock(errorId);
+				}
+
+			});
+
+			$("a.resolve").click(function () {
+
+				var link = $(this);
+				var errorId = link.closest("li").attr("id");
+
+				$.getJSON(this.href, function (payload) {
+
+					var li = getMainListItem(errorId);
+					li.css({
+						color: "#ccc",
+						fontStyle: "italic"
+					});
+					li.find("strong:first").css({
+						textDecoration: "line-through",
+						fontStyle: "italic"
+					});
+					hideUrlsBlock(errorId);
+					link.remove();
+
+				});
+
+				return false;
+
+			});
+
+			$(window).bind("hashchange", function (e) {
+				highlightError(location.hash.substr(7));
+			});
+
+			$(window).trigger("hashchange"); // zvýraznení při načtení stránky
+
+		});
+
+	</script>
+
+{/block}
+
+{block content}
+	<h1 n:inner-block="title">Přehled zaznamenaných problémů</h1>
+
+	{form filterForm}
+		<table>
+		<tr>
+			<td>Od</td><td>{input startDate}</td>
+			<td>Do</td><td>{input endDate}</td>
+			<td>{input onlyActive:}&nbsp;{label onlyActive:}pouze nevyřešené{/label}</td>
+			<td>{input send value => "Filtrovat"}</td>
+		</tr>
+		</table>
+	{/form}
+
+	{ifset $data['Fatal error']}{include #errors, errors => $data['Fatal error'], label => "Fatal errors", class => "fatal-error"}{/ifset}
+	{ifset $data['Warning']}{include #errors, errors => $data['Warning'], label => "Warning", class => "warning"}{/ifset}
+	{ifset $data['Deprecated']}{include #errors, errors => $data['Deprecated'], label => "Deprecated", class => "deprecated"}{/ifset}
+	{ifset $data['Notice']}{include #errors, errors => $data['Notice'], label => "Notice", class => "notice"}{/ifset}
+
+{/block}
+
+{block errors}
+
+	<div class="section-errors {$class}">
+		<h2>{$label}</h2>
+		<ul>
+			{foreach $errors as $id => $error}
+				<li class="message" id="error-{$id}">
+					<a class="id" href="#error-{$id}">#{$id}</a>
+					<strong>{$error['count']}× {$error['message']}</strong>
+					<abbr>&#x25ba;</abbr>
+					<br>
+
+					<small>
+						{= Nette\Diagnostics\Helpers::editorLink($error['file'], $error['line'])} | naposledy {$error['last_time']|date:'j. n. Y G:i'}
+						{ifset $error['redscreens']}
+							{var $redscreens = $error['redscreens']}
+							{var $rs = array_shift($redscreens)}
+							| <a href="{link viewException, errorId => $id, hash => $rs->hash}" title="{$rs->time|date:'j. n. Y H:i:s'}">zobrazit redscreen</a>
+							{foreach $redscreens as $rs}
+								{if $iterator->first}({/if}{*
+								*}<a href="{link viewException, errorId => $id, hash => $rs->hash}" title="{$rs->time|date:'j. n. Y H:i:s'}">{*
+									*}{=$iterator->counter + 1}{*
+								*}</a>{*
+								*}{if !$iterator->last}, {else}){/if}
+							{/foreach}
+						{/ifset}
+						| <a n:if="$error->status == 'active'" class="resolve" href="{link markAsResolved!, $id}">označit jako vyřešené</a>
+					</small>
+				</li>
+				<li class="section-errors-urls">
+					{* Seznam URL se načítá AJAXem *}
+				</li>
+			{/foreach}
+		</ul>
+	</div>
+
+{/block}

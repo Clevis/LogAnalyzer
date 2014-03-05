@@ -1,0 +1,22 @@
+{
+	"name": "clevis/loganalyzer",
+	"type": "clevis-skeleton-package",
+	"description": "Log analyzer for Skeleton21",
+	"homepage": "http://clevis.cz",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Clevis s.r.o.",
+			"homepage": "http://clevis.cz"
+		}
+	],
+
+	"require": {
+		"php": ">= 5.3.7",
+		"nette/nette": "@dev"
+	},
+
+	"autoload": {
+		"classmap": ["app/"]
+	}
+}
