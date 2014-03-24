@@ -12,8 +12,9 @@
 	],
 
 	"require": {
-		"php": ">= 5.3.7",
-		"nette/nette": "@dev"
+		"php": ">= 5.4",
+		"nette/nette": "@dev",
+		"nextras/forms": "@dev"
 	},
 
 	"autoload": {
