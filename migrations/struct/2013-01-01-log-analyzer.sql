@@ -6,7 +6,7 @@ CREATE TABLE `system_errors` (
 	`file` varchar(200) NOT NULL,
 	`line` int(10) unsigned NOT NULL,
 	`message` varchar(500) NOT NULL,
-	`level` enum('Fatal error','Warning','Deprecated','Notice') NOT NULL,
+	`level` enum('Fatal Error','User Error','Recoverable Error','Core Error','Compile Error','Parse Error','Warning','Core Warning','Compile Warning','User Warning','Notice','User Notice','Strict standards','Deprecated','User Deprecated') NOT NULL,
 	`last_time` datetime NOT NULL,
 	`count` int(10) unsigned NOT NULL,
 	`issue_id` int(10) unsigned DEFAULT NULL,
