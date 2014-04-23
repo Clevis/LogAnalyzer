@@ -3,4 +3,4 @@
 # tento config se nahrává před configy aplikace, proto mohou být nastavení aplikací změněny
 
 services:
-	- Clevis\LogAnalyzerService(..., %appDir%/../log)
+	- Clevis\LogAnalyzerService(@dibiConnection, %appDir%/../log)
