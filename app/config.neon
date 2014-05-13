@@ -2,5 +2,13 @@
 # konfigurace služeb poskytovaných balíčkem
 # tento config se nahrává před configy aplikace, proto mohou být nastavení aplikací změněny
 
+parameters:
+	analyzerDb:
+		driver: pdo
+		dsn: "sqlite:%tempDir%/../log/log-analyzer.sqlite"
+
+
+
 services:
-	- Clevis\LogAnalyzerService(@dibiConnection, %appDir%/../log)
+	analyzerDibiConnection: DibiConnection(%analyzerDb%)
+	logAnalyzerService: Clevis\LogAnalyzerService(@analyzerDibiConnection, %appDir%/../log)
