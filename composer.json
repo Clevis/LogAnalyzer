@@ -14,10 +14,22 @@
 	"require": {
 		"php": ">= 5.4",
 		"nette/nette": "@dev",
+		"clevis/skeleton-core": "*",
 		"nextras/forms": "@dev"
 	},
 
 	"autoload": {
 		"classmap": ["app/"]
-	}
+	},
+
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/Clevis/SkeletonCore.git"
+		},
+		{
+			"type": "vcs",
+			"url": "https://github.com/nextras/forms.git"
+		}
+	]
 }

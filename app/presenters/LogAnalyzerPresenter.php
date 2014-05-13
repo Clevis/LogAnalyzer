@@ -3,12 +3,13 @@ namespace Clevis\LogAnalyzer;
 
 use Nette;
 use Nette\Application\UI;
+use Clevis\Skeleton\Core;
 
 
-class LogAnalyzerPresenter extends BasePresenter
+class LogAnalyzerPresenter extends Core\BasePresenter
 {
 
-	/** @var Clevis\LogAnalyzerService @inject */
+	/** @var \Clevis\LogAnalyzerService @inject */
 	public $logAnalyzerService;
 
 
