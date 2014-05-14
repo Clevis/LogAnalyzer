@@ -307,7 +307,7 @@ class LogAnalyzerService extends Nette\Object
 		foreach ($errors as $hash => $error)
 		{
 			$this->dibi->query('
-				INSERT INTO [system_errors]', [
+				INSERT OR IGNORE INTO [system_errors]', [
 					'hash' => $hash,
 					'file' => $error['file'],
 					'line' => $error['line'],
@@ -316,12 +316,22 @@ class LogAnalyzerService extends Nette\Object
 					'last_time' => $error['last_time'],
 					'count' => $error['count']
 				], '
-				ON DUPLICATE KEY UPDATE
-					[count] = [count] + VALUES([count]),
-					[last_time] = VALUES([last_time])
 			');
 
-			$errorId = $this->dibi->getInsertId();
+			try
+			{
+				$errorId = $this->dibi->getInsertId();
+			}
+			catch (\DibiException $e)
+			{
+				$this->dibi->query('UPDATE [system_errors] SET
+					[count] = [count] + ', $error['count'] ,',
+					[last_time] = ', $error['last_time'] ,'
+					WHERE [hash] = %s', $hash
+				);
+				$errorId = $this->dibi->query('SELECT [error_id] FROM [system_errors] WHERE [hash] = %s', $hash)->fetchAssoc('error_id');
+			}
+
 			$this->saveUrls($errorId, $error['urls']);
 			if (isset($error['redscreens']) && $error['redscreens'])
 			{
@@ -342,20 +352,25 @@ class LogAnalyzerService extends Nette\Object
 		foreach ($urls as $urlHash => $url)
 		{
 			$urls[$urlHash]['hash'] = $urlHash;
-			$urls[$urlHash]['error_id'] = $errorId;
+			$urls[$urlHash]['error_id'] = is_array($errorId) ? key($errorId) : $errorId;
 		}
 
 		// It may not be possible to store URLs with a single query due to theirs amount,
 		// therefore we split them into chunks.
 		$chunks = array_chunk($urls, 50, TRUE);
+
 		foreach ($chunks as $chunk)
 		{
 			$this->dibi->query('
-				INSERT INTO [system_errors_urls]
-					%ex', $chunk, '
-				ON DUPLICATE KEY UPDATE
-					[count] = [count] + VALUES([count]),
-					[last_time] = VALUES([last_time])
+				INSERT OR IGNORE INTO [system_errors_urls]
+					%ex', $chunk
+			);
+
+			$this->dibi->query('
+				UPDATE [system_errors_urls] SET
+					[count] = [count] + %i' , $chunk[key($chunk)]['count'] , ',
+					[last_time] = ' , $chunk[key($chunk)]['last_time'] , '
+				WHERE [error_id] = %i' , $chunk[key($chunk)]['error_id'] , '
 			');
 		}
 	}
@@ -382,9 +397,12 @@ class LogAnalyzerService extends Nette\Object
 		$this->dibi->query('
 			INSERT INTO [system_errors_redscreens]
 				%ex', $values, '
-			-- ignorování duplicitních záznamů (nelze použít INSERT IGNORE, protože to buď vloží vše nebo nic)
-			ON DUPLICATE KEY UPDATE
-				[hash] = [hash]
+		');
+
+		$this->dibi->query('
+			UPDATE [system_errors_redscreens] SET
+				[hash] = %s' , $values['hash'] , '
+			WHERE [error_id] = %i' , $values['error_id'] , '
 		');
 	}
 

@@ -109,9 +109,7 @@
 
 {/block}
 
-{block scripts}
-
-	{include #parent}
+{block content}
 
 	<script type="text/javascript">
 		$(document).ready(function () {
@@ -225,9 +223,6 @@
 
 	</script>
 
-{/block}
-
-{block content}
 	<h1 n:inner-block="title">Přehled zaznamenaných problémů</h1>
 
 	{form filterForm}
@@ -246,13 +241,15 @@
 	{ifset $data['Deprecated']}{include #errors, errors => $data['Deprecated'], label => "Deprecated", class => "deprecated"}{/ifset}
 	{ifset $data['Notice']}{include #errors, errors => $data['Notice'], label => "Notice", class => "notice"}{/ifset}
 
+
 {/block}
 
 {block errors}
 
-	<div class="section-errors {$class}">
-		<h2>{$label}</h2>
+	<div class="section-errors {ifset $class}{$class}{/ifset}">
+		<h2>{ifset $label}{$label}{/ifset}</h2>
 		<ul>
+			{ifset $errors}
 			{foreach $errors as $id => $error}
 				<li class="message" id="error-{$id}">
 					<a class="id" href="#error-{$id}">#{$id}</a>
@@ -281,6 +278,7 @@
 					{* Seznam URL se načítá AJAXem *}
 				</li>
 			{/foreach}
+			{/ifset}
 		</ul>
 	</div>
 

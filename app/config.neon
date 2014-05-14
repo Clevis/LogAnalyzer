@@ -11,4 +11,4 @@ parameters:
 
 services:
 	analyzerDibiConnection: DibiConnection(%analyzerDb%)
-	logAnalyzerService: Clevis\LogAnalyzerService(@analyzerDibiConnection, %appDir%/../log)
+	- Clevis\LogAnalyzerService(@analyzerDibiConnection, %appDir%/../log)
