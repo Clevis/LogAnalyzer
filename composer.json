@@ -13,7 +13,7 @@
 
 	"require": {
 		"php": ">= 5.4",
-		"nette/nette": "@dev",
+		"nette/nette": "2.1.*",
 		"clevis/skeleton-core": "*",
 		"nextras/forms": "@dev"
 	},
