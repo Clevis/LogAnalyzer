@@ -47,6 +47,12 @@
 			cursor: pointer;
 		}
 
+		.section-errors li.message {
+			margin-top: 20px;
+			padding-top: 10px;
+			border-top: 1px solid #ccc;
+		}
+
 		.section-errors > ul > li.message.highlighted {
 			background-color: #444;
 			color: #F8F8F8;
@@ -87,10 +93,17 @@
 			display: block;
 		}
 
+		.section-errors .to-right {
+			text-align: right;
+		}
+
 		.section-errors-urls {
 			display: none;
+			background-color: #fff;
 			font-size: 85%;
-			padding-left: 20px;
+			margin-top: 10px;
+			padding: 10px 0px 10px 20px;
+			border-left: 2px solid #808080;
 		}
 
 		.section-errors-urls li {
@@ -101,8 +114,34 @@
 			color: inherit;
 		}
 
+		.section-errors a.redscreen {
+			color: #c70000;
+		}
+
+		.section-errors a.resolve {
+			color: #008500;
+		}
+
+		.section-errors a.resolve.reopen {
+			color: #000085
+		}
+
 		.section-errors-urls a:hover {
 			text-decoration: underline;
+		}
+
+		.section-errors span.today {
+			color: #d60000;
+			font-weight: bold;
+		}
+
+		.section-errors span.this-week {
+			color: #990;
+			font-weight: bold;
+		}
+
+		small.pull-right {
+			float: right;
 		}
 
 	</style>
@@ -190,6 +229,11 @@
 
 			});
 
+			$("a.redscreen").click(function() {
+				window.open(this.href);
+				return false;
+			})
+
 			$("a.resolve").click(function () {
 
 				var link = $(this);
@@ -230,6 +274,10 @@
 {block content}
 	<h1 n:inner-block="title">Přehled zaznamenaných problémů</h1>
 
+	<small class="pull-right">
+		Řadit dle <a n:href="this orderBy => NULL">četnosti</a> | <a n:href="this orderBy => 'lastTime'">času</a>
+	</small>
+
 	{form filterForm}
 		<table>
 		<tr>
@@ -241,7 +289,7 @@
 		</table>
 	{/form}
 
-	{ifset $data['Fatal error']}{include #errors, errors => $data['Fatal error'], label => "Fatal errors", class => "fatal-error"}{/ifset}
+	{ifset $data['Fatal Error']}{include #errors, errors => $data['Fatal Error'], label => "Fatal errors", class => "fatal-error"}{/ifset}
 	{ifset $data['Warning']}{include #errors, errors => $data['Warning'], label => "Warning", class => "warning"}{/ifset}
 	{ifset $data['Deprecated']}{include #errors, errors => $data['Deprecated'], label => "Deprecated", class => "deprecated"}{/ifset}
 	{ifset $data['Notice']}{include #errors, errors => $data['Notice'], label => "Notice", class => "notice"}{/ifset}
@@ -254,27 +302,35 @@
 		<h2>{$label}</h2>
 		<ul>
 			{foreach $errors as $id => $error}
+				{var $errorTimeClass = $error['last_time']->format('Ymd') === date('Ymd') ? 'today' : ($error['last_time']->format('Ymd') >= date("Ymd", strtotime('-7 days')) ? 'this-week' : 'older')}
 				<li class="message" id="error-{$id}">
 					<a class="id" href="#error-{$id}">#{$id}</a>
 					<strong>{$error['count']}× {$error['message']}</strong>
 					<abbr>&#x25ba;</abbr>
 					<br>
-
 					<small>
-						{= Nette\Diagnostics\Helpers::editorLink($error['file'], $error['line'])} | naposledy {$error['last_time']|date:'j. n. Y G:i'}
+						{= Nette\Diagnostics\Helpers::editorLink($error['file'], $error['line'])} | <span n:class="$errorTimeClass"> naposledy {$error['last_time']|date:'j. n. Y G:i'}</span>
+					</small>
+					<small class="to-right">
 						{ifset $error['redscreens']}
 							{var $redscreens = $error['redscreens']}
 							{var $rs = array_shift($redscreens)}
-							| <a href="{link viewException, errorId => $id, hash => $rs->hash}" title="{$rs->time|date:'j. n. Y H:i:s'}">zobrazit redscreen</a>
+							| <a href="{link viewException, errorId => $id, hash => $rs->hash}" class="redscreen" title="{$rs->time|date:'j. n. Y H:i:s'}">redscreen</a>
 							{foreach $redscreens as $rs}
 								{if $iterator->first}({/if}{*
-								*}<a href="{link viewException, errorId => $id, hash => $rs->hash}" title="{$rs->time|date:'j. n. Y H:i:s'}">{*
+								*}<a href="{link viewException, errorId => $id, hash => $rs->hash}" class="redscreen" title="{$rs->time|date:'j. n. Y H:i:s'}">{*
 									*}{=$iterator->counter + 1}{*
 								*}</a>{*
 								*}{if !$iterator->last}, {else}){/if}
 							{/foreach}
 						{/ifset}
-						| <a n:if="$error->status == 'active'" class="resolve" href="{link markAsResolved!, $id}">označit jako vyřešené</a>
+						|
+						{if $error->status == 'active'}
+							<a n:if="$error->status == 'active'" class="resolve" href="{link markAsResolved!, $id}">označit jako vyřešené</a>
+						{else}
+							<a n:if="$error->status == 'resolved'" class="resolve reopen" href="{link markAsReopened!, $id}">znovuotevřít</a>
+						{/if}
+						|
 					</small>
 				</li>
 				<li class="section-errors-urls">

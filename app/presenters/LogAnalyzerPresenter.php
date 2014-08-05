@@ -13,12 +13,12 @@ class LogAnalyzerPresenter extends Core\BasePresenter
 	public $logAnalyzerService;
 
 
-	public function renderDefault($startDate = NULL, $endDate = NULL, $onlyActive = TRUE)
+	public function renderDefault($startDate = NULL, $endDate = NULL, $onlyActive = TRUE, $orderBy = NULL)
 	{
 		if ($startDate !== NULL) $startDate = Nette\DateTime::from($startDate);
 		if ($endDate !== NULL) $endDate = Nette\DateTime::from($endDate);
 
-		$errors = $this->logAnalyzerService->getErrors($startDate, $endDate, $onlyActive);
+		$errors = $this->logAnalyzerService->getErrors($startDate, $endDate, $onlyActive, $orderBy);
 
 		$this['filterForm']->setDefaults(array(
 			'startDate' => $startDate,
@@ -51,6 +51,24 @@ class LogAnalyzerPresenter extends Core\BasePresenter
 		else
 		{
 			$this->flashMessage('Problém byl označen jako vyřešený.');
+			$this->redirect('this');
+		}
+	}
+
+	/**
+	 * @secured
+	 */
+	public function handleMarkAsReopened($errorId)
+	{
+		$this->logAnalyzerService->markAsReopened($errorId);
+
+		if ($this->isAjax())
+		{
+			$this->sendPayload();
+		}
+		else
+		{
+			$this->flashMessage('Problém byl označen jako znovuotevřený.');
 			$this->redirect('this');
 		}
 	}

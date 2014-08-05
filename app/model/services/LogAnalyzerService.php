@@ -34,7 +34,7 @@ class LogAnalyzerService extends Nette\Object
 	 * @param    bool   returns only erros that have not been fixed yet
 	 * @return   array  level => errorId => DibiRow
 	 */
-	public function getErrors(DateTime $startDate = NULL, DateTime $endDate = NULL, $onlyActive = TRUE)
+	public function getErrors(DateTime $startDate = NULL, DateTime $endDate = NULL, $onlyActive = TRUE, $orderBy = NULL)
 	{
 		if (is_file($this->getErrorLogFile()))
 		{
@@ -50,7 +50,7 @@ class LogAnalyzerService extends Nette\Object
 			SELECT [error_id], [status], [file], [line], [message], [level], [count], [last_time], [issue_id]
 			FROM [system_errors]
 			WHERE %and', $conds, '
-			ORDER BY [count] DESC
+			ORDER BY ' . ($orderBy === NULL ? '[count]' : '[last_time]') . ' DESC
 		');
 		$errors = $result->fetchAssoc('level|error_id');
 
@@ -115,6 +115,19 @@ class LogAnalyzerService extends Nette\Object
 		$this->dibi->query('
 			UPDATE [system_errors]
 			SET [status] = %s', 'resolved', '
+			WHERE [error_id] = %i', $errorId
+		);
+	}
+
+	/**
+	 * @param    int
+	 * @return   void
+	 */
+	public function markAsReopened($errorId)
+	{
+		$this->dibi->query('
+			UPDATE [system_errors]
+			SET [status] = %s', 'active', '
 			WHERE [error_id] = %i', $errorId
 		);
 	}
