@@ -29,6 +29,38 @@ class LogAnalyzerPresenter extends Core\BasePresenter
 		$this->template->data = $errors;
 	}
 
+	public function createComponentCommentForm()
+	{
+		$form = new Ui\Form;
+
+		$form->addProtection();
+		$form->addHidden('errorId');
+		$form->addText('newComment', 'Přidat komentář')
+			->setAttribute('placeholder', 'Přidat komentář')
+			->setRequired('Zadejte komenář');
+
+		$form->addSubmit('send');
+
+		$form->onSuccess[] = [$this, 'commentFormSubmitted'];
+
+		return $form;
+	}
+
+	public function commentFormSubmitted(UI\Form $form)
+	{
+		$values = $form->getValues();
+
+		$error = $this->logAnalyzerService->getError($values->errorId);
+		if (!$error) $this->error();
+
+		$now = new \DateTime;
+		$error->comments .= $now->format("Y-m-d H:i:s - ") . $values->newComment . (isset($this->user) ? ' (#' . $this->user->id . ')':'') . PHP_EOL;
+
+		$this->logAnalyzerService->saveComment($error);
+
+		$this->redirect('this');
+	}
+
 
 	public function handleGetUrls($errorId)
 	{

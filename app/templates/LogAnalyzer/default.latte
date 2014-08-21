@@ -85,7 +85,7 @@
 			color: inherit;
 		}
 
-		.section-errors > ul > li small {
+		.section-errors > ul > li small, .section-errors form {
 			color: #808080;
 			margin-left: 30px;
 			font-size: 90%;
@@ -142,6 +142,10 @@
 
 		small.pull-right {
 			float: right;
+		}
+
+		.section-errors form input[type="text"] {
+			width: 50%;
 		}
 
 	</style>
@@ -311,6 +315,16 @@
 					<small>
 						{= Nette\Diagnostics\Helpers::editorLink($error['file'], $error['line'])} | <span n:class="$errorTimeClass"> naposledy {$error['last_time']|date:'j. n. Y G:i'}</span>
 					</small>
+					<p>
+						<small n:if="$error['comments']">
+						{!nl2br($error['comments'])}
+						</small>
+						{form commentForm}
+							{input errorId value => $id}
+							{input newComment}
+							{input send}
+						{/form}
+					</p>
 					<small class="to-right">
 						{ifset $error['redscreens']}
 							{var $redscreens = $error['redscreens']}

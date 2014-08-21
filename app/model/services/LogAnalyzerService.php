@@ -47,7 +47,7 @@ class LogAnalyzerService extends Nette\Object
 		if ($endDate !== NULL) $conds[] = ['[last_time] <= %d', $endDate];
 
 		$result = $this->dibi->query('
-			SELECT [error_id], [status], [file], [line], [message], [level], [count], [last_time], [issue_id]
+			SELECT [error_id], [status], [file], [line], [message], [level], [count], [last_time], [issue_id], [comments]
 			FROM [system_errors]
 			WHERE %and', $conds, '
 			ORDER BY ' . ($orderBy === NULL ? '[count]' : '[last_time]') . ' DESC
@@ -72,6 +72,19 @@ class LogAnalyzerService extends Nette\Object
 		}
 
 		return $errors;
+	}
+
+	/**
+	 * @param    int $errorId
+	 * @return   array (errorId => list of redscreens)
+	 */
+	public function getError($errorId)
+	{
+		return $this->dibi->query('
+			SELECT *
+			FROM [system_errors]
+			WHERE [error_id] = %i', $errorId, '
+		')->fetch();
 	}
 
 	/**
@@ -325,6 +338,7 @@ class LogAnalyzerService extends Nette\Object
 					'file' => $error['file'],
 					'line' => $error['line'],
 					'message' => $error['message'],
+					'comments' => $error['comments'],
 					'level' => $error['severity'],
 					'last_time' => $error['last_time'],
 					'count' => $error['count']
@@ -341,6 +355,22 @@ class LogAnalyzerService extends Nette\Object
 				$this->saveRedscreens($errorId, $error['redscreens']);
 			}
 		}
+	}
+
+	/**
+	 * Stores error to database.
+	 *
+	 * @param    errorHash
+	 * @return   void
+	 */
+	public function saveComment($error)
+	{
+		$this->dibi->query('
+			UPDATE [system_errors] SET ', [
+				'comments' => $error['comments'],
+			], '
+			WHERE [error_id] = %i' , $error['error_id'] , '
+		');
 	}
 
 	/**
