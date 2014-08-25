@@ -338,7 +338,6 @@ class LogAnalyzerService extends Nette\Object
 					'file' => $error['file'],
 					'line' => $error['line'],
 					'message' => $error['message'],
-					'comments' => $error['comments'],
 					'level' => $error['severity'],
 					'last_time' => $error['last_time'],
 					'count' => $error['count']
