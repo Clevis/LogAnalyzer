@@ -309,6 +309,11 @@ class LogAnalyzerService extends Nette\Object
 			$matches['severity'] = 'Fatal error';
 		}
 
+		if (Nette\Utils\Strings::match($matches['date'], '#^(0-9\-){10}[a-zA-Z]+#') !== FALSE)
+		{
+			$matches['date'] = Nette\Utils\Strings::substring($matches['date'], 0, 10);
+		}
+
 		$error = [
 			'time' => new DateTime($matches['date'] . ' ' . str_replace('-', ':', $matches['time'])),
 			'severity' => $matches['severity'],
