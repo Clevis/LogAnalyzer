@@ -313,7 +313,7 @@
 					<abbr>&#x25ba;</abbr>
 					<br>
 					<small>
-						{= Nette\Diagnostics\Helpers::editorLink($error['file'], $error['line'])} | <span n:class="$errorTimeClass"> naposledy {$error['last_time']|date:'j. n. Y G:i'}</span>
+						{= Tracy\Helpers::editorLink($error['file'], $error['line'])} | <span n:class="$errorTimeClass"> naposledy {$error['last_time']|date:'j. n. Y G:i'}</span>
 					</small>
 					<p>
 						<small n:if="$error['comments']">

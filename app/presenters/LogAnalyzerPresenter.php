@@ -15,8 +15,8 @@ class LogAnalyzerPresenter extends Core\BasePresenter
 
 	public function renderDefault($startDate = NULL, $endDate = NULL, $onlyActive = TRUE, $orderBy = NULL)
 	{
-		if ($startDate !== NULL) $startDate = Nette\DateTime::from($startDate);
-		if ($endDate !== NULL) $endDate = Nette\DateTime::from($endDate);
+		if ($startDate !== NULL) $startDate = Nette\Utils\DateTime::from($startDate);
+		if ($endDate !== NULL) $endDate = Nette\Utils\DateTime::from($endDate);
 
 		$errors = $this->logAnalyzerService->getErrors($startDate, $endDate, $onlyActive, $orderBy);
 
